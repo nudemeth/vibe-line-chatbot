@@ -1,8 +1,6 @@
-import * as dotenv from 'dotenv';
 import { GoogleGenerativeAI } from '@google/generative-ai';
 
-dotenv.config();
-
+// This assumes you have set the GEMINI_API_KEY environment variable before running the application
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY!);
 
 async function generateText(prompt: string): Promise<string> {

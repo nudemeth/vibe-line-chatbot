@@ -1,18 +1,16 @@
 import express from 'express';
-import { middleware, Client, ClientConfig, WebhookEvent, MessageEvent, TextMessage } from '@line/bot-sdk';
-
+import { middleware, WebhookEvent, TextMessage, messagingApi } from '@line/bot-sdk';
 
 // Define configuration for LINE Messaging API
 const channelAccessToken: string = process.env.LINE_CHANNEL_ACCESS_TOKEN || '';
 const channelSecret: string = process.env.LINE_CHANNEL_SECRET || '';
-
 const config = {
   channelAccessToken: channelAccessToken,
   channelSecret: channelSecret,
 };
 
 // Create a new LINE SDK client
-const client: Client = new Client(config as ClientConfig);
+const client = new messagingApi.MessagingApiClient(config);
 
 // Create a new middleware
 const lineMiddleware: express.RequestHandler = middleware(config);
@@ -38,24 +36,36 @@ app.post('/webhook', async (req: express.Request, res: express.Response) => {
 });
 
 // Event handler function
-function handleEvent(event: WebhookEvent): Promise<any> {
-  // Handle only message events
-  if (event.type !== 'message' || event.message.type !== 'text') {
-    return Promise.resolve(null);
-  }
+async function handleEvent(event: WebhookEvent): Promise<void> {
+ if (event.type !== 'message') {
+  return;
+ }
 
-  const text: string = (event.message as TextMessage).text;
-  // Create a replying text message
-  const replyText: string = `Echo: ${text}`;
-  const replyMessage: TextMessage = { type: 'text', text: replyText };
+ const message = event.message;
 
-  // Reply to the user
-  return client.replyMessage(event.replyToken, replyMessage);
+ switch (message.type) {
+  case 'text':
+    const text: string = message.text;
+    // Create a replying text message
+    const replyText: string = `Echo: ${text}`;
+    const replyMessage: TextMessage = { type: 'text', text: replyText };
+
+    // Reply to the user
+    await client.replyMessage({
+      replyToken: event.replyToken,
+      messages: [replyMessage],
+    });
+  break;
+ }
 }
 
 app.get('/', (req, res) => {
   const name = process.env.NAME || 'World';
   res.send(`Hello ${name}!`);
+});
+
+app.post('/', (req, res) => {
+  res.send('Bla');
 });
 
 const port = parseInt(process.env.PORT || '8080'); // Change default port to 8080 as required by LINE
