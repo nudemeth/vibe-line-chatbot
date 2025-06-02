@@ -1,4 +1,7 @@
 import { GoogleGenAI } from '@google/genai';
+import dotenv from 'dotenv';
+
+dotenv.config();
 
 // This assumes you have set the GEMINI_API_KEY environment variable
 const ai = new GoogleGenAI({
@@ -21,16 +24,12 @@ export async function getResponseFromModel(prompt: string): Promise<string> {
         parts: [{ text: prompt }],
       },
     ];
-    const result = await ai.models.generateContentStream({
+    const result = await ai.models.generateContent({
       model,
       config,
       contents,
     });
-    let response = '';
-    for await (const chunk of result) {
-      response += chunk.text;
-    }
-    return response;
+    return result.text;
   } catch (error) {
     console.error('Error generating text with Gemini:', error);
     throw new Error('Failed to generate text with Gemini');

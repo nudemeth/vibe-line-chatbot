@@ -1,6 +1,9 @@
 import express from 'express';
+import dotenv from 'dotenv';
 import { middleware, WebhookEvent, TextMessage, messagingApi } from '@line/bot-sdk';
 import { getResponseFromModel } from './ai-gemini';
+
+dotenv.config();
 
 // Define configuration for LINE Messaging API
 const channelAccessToken: string = process.env.LINE_CHANNEL_ACCESS_TOKEN || '';
@@ -23,6 +26,7 @@ app.use('/webhook', lineMiddleware);
 
 // Register a webhook handler for the /webhook endpoint
 app.post('/webhook', async (req: express.Request, res: express.Response) => {
+  
   try {
     const events: WebhookEvent[] = req.body.events;
     // Process each event
@@ -60,13 +64,8 @@ async function handleEvent(event: WebhookEvent): Promise<void> {
  }
 }
 
-app.get('/', (req, res) => {
-  const name = process.env.NAME || 'World';
-  res.send(`Hello ${name}!`);
-});
-
-app.post('/', (req, res) => {
-  res.send('Bla');
+app.get('/', async (req, res) => {
+  res.send('Hello World!');
 });
 
 const port = parseInt(process.env.PORT || '8080'); // Change default port to 8080 as required by LINE
