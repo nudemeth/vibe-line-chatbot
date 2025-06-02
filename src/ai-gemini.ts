@@ -1,14 +1,36 @@
-import { GoogleGenerativeAI } from '@google/generative-ai';
+import { GoogleGenAI } from '@google/genai';
 
-// This assumes you have set the GEMINI_API_KEY environment variable before running the application
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY!);
+// This assumes you have set the GEMINI_API_KEY environment variable
+const ai = new GoogleGenAI({
+  apiKey: process.env.GEMINI_API_KEY,
+});
+const tools = [
+  { googleSearch: {} },
+];
+const config = {
+  tools,
+  responseMimeType: 'text/plain',
+};
+const model = 'gemini-2.5-flash-preview-05-20';
 
-async function generateText(prompt: string): Promise<string> {
+export async function getResponseFromModel(prompt: string): Promise<string> {
   try {
-    const model = genAI.getGenerativeModel({ model: 'gemini-pro' });
-    const result = await model.generateContent(prompt);
-    const response = await result.response;
-    return response.text();
+    const contents = [
+      {
+        role: 'user',
+        parts: [{ text: prompt }],
+      },
+    ];
+    const result = await ai.models.generateContentStream({
+      model,
+      config,
+      contents,
+    });
+    let response = '';
+    for await (const chunk of result) {
+      response += chunk.text;
+    }
+    return response;
   } catch (error) {
     console.error('Error generating text with Gemini:', error);
     throw new Error('Failed to generate text with Gemini');

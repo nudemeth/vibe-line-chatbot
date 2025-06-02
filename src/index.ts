@@ -1,5 +1,6 @@
 import express from 'express';
 import { middleware, WebhookEvent, TextMessage, messagingApi } from '@line/bot-sdk';
+import { getResponseFromModel } from './ai-gemini';
 
 // Define configuration for LINE Messaging API
 const channelAccessToken: string = process.env.LINE_CHANNEL_ACCESS_TOKEN || '';
@@ -47,7 +48,7 @@ async function handleEvent(event: WebhookEvent): Promise<void> {
   case 'text':
     const text: string = message.text;
     // Create a replying text message
-    const replyText: string = `Echo: ${text}`;
+    const replyText: string = await getResponseFromModel(text);
     const replyMessage: TextMessage = { type: 'text', text: replyText };
 
     // Reply to the user
